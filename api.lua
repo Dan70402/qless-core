@@ -134,8 +134,12 @@ QlessAPI.unpause = function(now, ...)
   return QlessQueue.unpause(unpack(arg))
 end
 
+QlessAPI.paused = function(now, queue)
+  return Qless.queue(queue):paused()
+end
+
 QlessAPI.cancel = function(now, ...)
-  return Qless.cancel(unpack(arg))
+  return Qless.cancel(now, unpack(arg))
 end
 
 QlessAPI.timeout = function(now, ...)
@@ -197,6 +201,31 @@ end
 
 QlessAPI['queue.forget'] = function(now, ...)
   QlessQueue.deregister(unpack(arg))
+end
+
+-- Resource apis
+QlessAPI['resource.set'] = function(now, rid, max)
+  return Qless.resource(rid):set(max)
+end
+
+QlessAPI['resource.get'] = function(now, rid)
+  local data = Qless.resource(rid):data()
+  if not data then
+    return nil
+  end
+  return cjson.encode(data)
+end
+
+QlessAPI['resource.unset'] = function(now, rid)
+  return Qless.resource(rid):unset()
+end
+
+QlessAPI['resource.locks'] = function(now, rid)
+  return Qless.resource(rid):locks()
+end
+
+QlessAPI['resources'] = function(now, rid)
+  return cjson.encode(QlessResource:counts(now, rid))
 end
 
 -------------------------------------------------------------------------------

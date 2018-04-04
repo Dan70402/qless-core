@@ -27,6 +27,12 @@ QlessJob.__index = QlessJob
 local QlessRecurringJob = {}
 QlessRecurringJob.__index = QlessRecurringJob
 
+-- Resource forward declaration
+local QlessResource = {
+    ns = Qless.ns .. 'rs:'
+}
+QlessResource.__index = QlessResource;
+
 -- Config forward declaration
 Qless.config = {}
 
@@ -59,6 +65,15 @@ function Qless.recurring(jid)
   setmetatable(job, QlessRecurringJob)
   job.jid = jid
   return job
+end
+
+-- Return a resource object
+function Qless.resource(rid)
+  assert(rid, 'Resource(): no rid provided')
+  local res = {}
+  setmetatable(res, QlessResource)
+  res.rid = rid
+  return res
 end
 
 -- Failed([group, [start, [limit]]])
@@ -152,7 +167,7 @@ function Qless.jobs(now, state, ...)
     elseif state == 'depends' then
       return queue.depends.peek(now, offset, count)
     elseif state == 'recurring' then
-      return queue.recurring.peek('inf', offset, count)
+      return queue.recurring.peek('+inf', offset, count)
     else
       error('Jobs(): Unknown type "' .. state .. '"')
     end
@@ -319,7 +334,7 @@ end
 -- Cancel a job from taking place. It will be deleted from the system, and any
 -- attempts to renew a heartbeat will fail, and any attempts to complete it
 -- will fail. If you try to get the data on the object, you will get nothing.
-function Qless.cancel(...)
+function Qless.cancel(now, ...)
   -- Dependents is a mapping of a job to its dependent jids
   local dependents = {}
   for _, jid in ipairs(arg) do
@@ -338,14 +353,18 @@ function Qless.cancel(...)
     end
   end
 
+  local cancelled_jids = {}
+
   -- If we've made it this far, then we are good to go. We can now just
   -- remove any trace of all these jobs, as they form a dependent clique
   for _, jid in ipairs(arg) do
     -- Find any stage it's associated with and remove its from that stage
-    local state, queue, failure, worker = unpack(redis.call(
-      'hmget', QlessJob.ns .. jid, 'state', 'queue', 'failure', 'worker'))
+    local real_jid, state, queue, failure, worker = unpack(redis.call(
+      'hmget', QlessJob.ns .. jid, 'jid', 'state', 'queue', 'failure', 'worker'))
 
-    if state ~= 'complete' then
+    if state ~= false and state ~= 'complete' then
+      table.insert(cancelled_jids, jid)
+
       -- Send a message out on the appropriate channels
       local encoded = cjson.encode({
         jid    = jid,
@@ -370,6 +389,8 @@ function Qless.cancel(...)
         queue.scheduled.remove(jid)
         queue.depends.remove(jid)
       end
+
+      Qless.job(jid):release_resources(now)
 
       -- We should probably go through all our dependencies and remove
       -- ourselves from the list of dependents
@@ -417,6 +438,6 @@ function Qless.cancel(...)
     end
   end
 
-  return arg
+  return cancelled_jids
 end
 

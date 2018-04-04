@@ -36,6 +36,7 @@ class TestTrack(TestQless):
                 'data': '{}',
                 'remaining': 5,
                 'spawned_from_jid': False,
+                'resources': {},
                 'history': [{
                     'q': 'queue', 'what': 'put', 'when': 0
                 }]

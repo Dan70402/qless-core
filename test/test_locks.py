@@ -59,7 +59,8 @@ class TestLocks(TestQless):
                 'tags': {},
                 'tracked': False,
                 'worker': 'another',
-                'spawned_from_jid': False}])
+                'spawned_from_jid': False,
+                'resources': {}}])
         # When we try to heartbeat, it should raise an exception
         self.assertRaisesRegexp(redis.ResponseError, r'given out to another',
             self.lua, 'heartbeat', 1000, 'jid', 'worker', {})
@@ -276,7 +277,8 @@ class TestRetry(TestQless):
             'tags': {},
             'tracked': False,
             'worker': u'',
-            'spawned_from_jid': False})
+            'spawned_from_jid': False,
+            'resources': {}})
 
     def test_retry_delay(self):
         '''Can retry a job with a delay and then it's considered scheduled'''
@@ -326,7 +328,8 @@ class TestRetry(TestQless):
             'tags': {},
             'tracked': False,
             'worker': u'',
-            'spawned_from_jid': False
+            'spawned_from_jid': False,
+            'resources': {}
         })
 
 
