@@ -707,9 +707,15 @@ function QlessQueue:recur(now, jid, klass, raw_data, spec, ...)
         options.backlog))
     options.resources = assert(cjson.decode(options['resources'] or '[]'),
       'Recur(): Arg "resources" not JSON array: '     .. tostring(options['resources']))
+    options.replace = assert(tonumber(options.replace or 1),
+      'Recur(): Arg "replace" not a number: ' .. tostring(options.replace))
 
     local count, old_queue = unpack(redis.call('hmget', 'ql:r:' .. jid, 'count', 'queue'))
     count = count or 0
+
+    if count ~= 0 and options.replace == 0 then
+      return nil
+    end
 
     -- If it has previously been in another queue, then we should remove
     -- some information about it
