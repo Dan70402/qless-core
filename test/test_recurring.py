@@ -123,6 +123,58 @@ class TestRecurring(TestQless):
         self.assertEqual(len(jobs), 2)
         self.assertEqual(jobs[0]['jid'], 'jid-1')
 
+    def test_replace(self):
+        '''Recurring jobs can can optionally be replaced'''
+        self.lua('recur', 0, 'queue', 'jid', 'klass', {},
+                 'interval', 60, 0
+                 )
+        self.assertEqual(self.lua('recur.get', 0, 'jid'), {
+            'backlog': 0,
+            'count': 0,
+            'data': '{}',
+            'interval': 60,
+            'jid': 'jid',
+            'klass': 'klass',
+            'priority': 0,
+            'queue': 'queue',
+            'retries': 0,
+            'state': 'recur',
+            'tags': {}
+        })
+        self.lua('recur', 0, 'queue', 'jid', 'newklass', {},
+                 'interval', 60, 0, 'replace', 0
+                 )
+        self.assertEqual(self.lua('recur.get', 0, 'jid'), {
+            'backlog': 0,
+            'count': 0,
+            'data': '{}',
+            'interval': 60,
+            'jid': 'jid',
+            'klass': 'klass',
+            'priority': 0,
+            'queue': 'queue',
+            'retries': 0,
+            'state': 'recur',
+            'tags': {}
+        })
+        self.lua('recur', 0, 'queue', 'jid', 'newklass', {},
+                 'interval', 60, 0, 'replace', 1
+                 )
+        self.assertEqual(self.lua('recur.get', 0, 'jid'), {
+            'backlog': 0,
+            'count': 0,
+            'data': '{}',
+            'interval': 60,
+            'jid': 'jid',
+            'klass': 'newklass',
+            'priority': 0,
+            'queue': 'queue',
+            'retries': 0,
+            'state': 'recur',
+            'tags': {}
+        })
+
+
     def test_get(self):
         '''We should be able to get recurring jobs'''
         self.lua('recur', 0, 'queue', 'jid', 'klass', {}, 'interval', 60, 0)
