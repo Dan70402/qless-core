@@ -150,6 +150,14 @@ function QlessResource:release(now, jid)
   -- multiple resource validation
   if Qless.job(newJid):acquire_resources(now) then
     local data = Qless.job(newJid):data()
+
+    -- if a user manually removed a job key it will break the pending
+    -- protect against user error by cleaning up the pending
+    if data == nil then
+      redis.call('zrem', keyPending, newJid)
+      return false
+    end
+
     Qless.queue(data['queue']).work.add(score, 0, newJid)
   end
 
