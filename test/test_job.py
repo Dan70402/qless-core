@@ -219,8 +219,8 @@ class TestComplete(TestQless):
 
     def test_complete_releases_resources_for_next_job(self):
         self.lua('resource.set', 0, 'r-1', 1)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
-        self.lua('put', 0, None, 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
         jobs = self.lua('pop', 1, 'queue', 'worker-1', 10)
         self.assertEqual(len(jobs), 1)
 
@@ -397,7 +397,7 @@ class TestJobsWithResources(TestQless):
         self.lua('config.set', 0, 'grace-period', 0)
 
         self.lua('resource.set', 0, 'r-1', 1)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1'])
 
         jobs = self.lua('pop', 1, 'queue', 'worker-1', 1)
         jobs = self.lua('pop', 22, 'queue', 'worker-2', 1)
@@ -413,8 +413,8 @@ class TestJobsWithResources(TestQless):
         self.lua('config.set', 0, 'grace-period', 0)
 
         self.lua('resource.set', 0, 'r-1', 1)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1'])
-        self.lua('put', 0, None, 'queue', 'jid-2', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-2', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1'])
 
         jobs = self.lua('pop', 1, 'queue', 'worker-1', 1)
         jobs = self.lua('pop', 22, 'queue', 'worker-2', 1)
@@ -427,14 +427,14 @@ class TestJobsWithResources(TestQless):
         """Job requires invalid resource, generates error"""
 
         self.assertRaisesRegexp(redis.ResponseError, r'resource r-1 does not exist',
-            self.lua, 'put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1'])
+            self.lua, 'put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1'])
 
     def test_releases_multiple_resources(self):
         """Job requires mutliple resources to be claimed"""
         self.lua('resource.set', 0, 'r-1', 1)
         self.lua('resource.set', 0, 'r-2', 1)
 
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1', 'r-2'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1', 'r-2'])
 
         job = self.lua('pop', 1, 'queue', 'worker-1', 1)
 
@@ -462,7 +462,7 @@ class TestJobsWithResources(TestQless):
         self.lua('resource.set', 0, 'r-2', 1)
         self.lua('resource.set', 0, 'r-3', 1)
 
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1', 'r-2'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'retries', 0, 'resources', ['r-1', 'r-2'])
         job1 = self.lua('pop', 1, 'queue', 'worker-1', 1)
 
         res1 = self.lua('resource.get', 0, 'r-1')
@@ -473,7 +473,7 @@ class TestJobsWithResources(TestQless):
         self.assertEqual(res2['locks'], ['jid-1'])
         self.assertEqual(res2['pending'], {})
 
-        self.lua('put', 0, None, 'queue', 'jid-2', 'klass', {}, 0, 'retries', 0, 'resources', ['r-2', 'r-3'])
+        self.lua('put', 0, '', 'queue', 'jid-2', 'klass', {}, 0, 'retries', 0, 'resources', ['r-2', 'r-3'])
 
         res1 = self.lua('resource.get', 0, 'r-1')
         self.assertEqual(res1['locks'], ['jid-1'])

@@ -69,6 +69,7 @@ class TestRecurring(TestQless):
         self.assertEqual(len(popped), 1)
         self.assertEqual(popped[0]['jid'], 'jid-2')
         self.assertEqual(popped[0]['spawned_from_jid'], 'jid')
+        self.assertEqual(popped[0]['resources'], {})
 
     def test_offset(self):
         '''We can set an offset from now for jobs to recur on'''

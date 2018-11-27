@@ -2,7 +2,7 @@
 function QlessRecurringJob:data()
   local job = redis.call(
     'hmget', 'ql:r:' .. self.jid, 'jid', 'klass', 'state', 'queue',
-    'priority', 'interval', 'retries', 'count', 'data', 'tags', 'backlog')
+    'priority', 'interval', 'retries', 'count', 'data', 'tags', 'backlog', 'resources')
 
   if not job[1] then
     return nil
@@ -19,7 +19,8 @@ function QlessRecurringJob:data()
     count        = tonumber(job[8]),
     data         = job[9],
     tags         = cjson.decode(job[10]),
-    backlog      = tonumber(job[11] or 0)
+    backlog      = tonumber(job[11] or 0),
+    resources    = tonumber(job[12] or '[]')
   }
 end
 
