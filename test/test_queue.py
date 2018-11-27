@@ -134,7 +134,7 @@ class TestJobs(TestQless):
 
     def test_scheduled_does_not_acquire_resources(self):
         self.lua('resource.set', 0, 'r-1', 1)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 1, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 1, 'resources', ['r-1'])
         scheduled = self.lua('jobs', 0, 'scheduled', 'queue')
 
         res = self.lua('resource.get', 0, 'r-1')
@@ -143,7 +143,7 @@ class TestJobs(TestQless):
 
     def test_scheduled_acquires_resources_when_popped(self):
         self.lua('resource.set', 0, 'r-1', 1)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 1, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 1, 'resources', ['r-1'])
         scheduled = self.lua('jobs', 0, 'scheduled', 'queue')
 
         jobs = self.lua('pop', 1, 'queue', 'worker-1', 1)
@@ -154,8 +154,8 @@ class TestJobs(TestQless):
 
     def test_scheduled_adds_pending_if_resources_not_available(self):
         self.lua('resource.set', 0, 'r-1', 1)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 1, 'resources', ['r-1'])
-        self.lua('put', 0, None, 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 1, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
 
         res = self.lua('resource.get', 0, 'r-1')
         self.assertEqual(res['locks'], ['jid-2'])
@@ -170,8 +170,8 @@ class TestJobs(TestQless):
 
     def test_scheduled_with_pending_does_pop_when_resources_are_available(self):
         self.lua('resource.set', 0, 'r-1', 1)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 1, 'resources', ['r-1'])
-        self.lua('put', 0, None, 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 1, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
 
         res = self.lua('resource.get', 0, 'r-1')
         self.assertEqual(res['locks'], ['jid-2'])
@@ -498,8 +498,8 @@ class TestPut(TestQless):
 
     def test_resources(self):
         self.lua('resource.set', 0, 'r-1', 1)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
-        self.lua('put', 0, None, 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
 
         res = self.lua('pop', 1, 'queue', 'worker-1', 1)
         self.assertEquals(len(res), 1)
@@ -521,40 +521,40 @@ class TestPut(TestQless):
         self.assertEquals(res, 'complete')
 
     def test_does_replace_when_not_running(self):
-        res = self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
+        res = self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
         self.assertEqual(res, 'jid-1')
 
-        res = self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
+        res = self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
         self.assertEqual(res, 'jid-1')
 
     def test_no_replace_when_running_and_not_expired(self):
-        res = self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
+        res = self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
         self.assertEqual(res, 'jid-1')
 
         res = self.lua('pop', 1, 'queue', 'worker-1', 1)
         self.assertEqual(res[0]['jid'], 'jid-1')
 
-        res = self.lua('put', 5, None, 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
+        res = self.lua('put', 5, '', 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
         self.assertEqual(res, 56)
 
     def test_default_is_to_replace_existing_job(self):
-        res = self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0)
+        res = self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0)
         self.assertEqual(res, 'jid-1')
 
         res = self.lua('pop', 1, 'queue', 'worker-1', 1)
         self.assertEqual(res[0]['jid'], 'jid-1')
 
-        res = self.lua('put', 5, None, 'queue', 'jid-1', 'klass', {}, 0)
+        res = self.lua('put', 5, '', 'queue', 'jid-1', 'klass', {}, 0)
         self.assertEqual(res, 'jid-1')
 
     def test_does_replace_when_running_and_expired(self):
-        res = self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
+        res = self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
         self.assertEqual(res, 'jid-1')
 
         res = self.lua('pop', 1, 'queue', 'worker-1', 1)
         self.assertEqual(res[0]['jid'], 'jid-1')
 
-        res = self.lua('put', 65, None, 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
+        res = self.lua('put', 65, '', 'queue', 'jid-1', 'klass', {}, 0, 'replace', 0)
         self.assertEqual(res, 'jid-1')
 
 
@@ -648,17 +648,17 @@ class TestPeek(TestQless):
 
     def test_can_queue_and_peek_multiples(self):
         self.lua('resource.set', 0, 'r-1', 2)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
-        self.lua('put', 0, None, 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
 
         res = self.lua('peek', 99, 'queue', 5)
         self.assertEqual(len(res), 2)
 
     def test_can_peek_returns_correct_number_for_limited_resource(self):
         self.lua('resource.set', 0, 'r-1', 2)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
-        self.lua('put', 0, None, 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
-        self.lua('put', 0, None, 'queue', 'jid-3', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-3', 'klass', {}, 0, 'resources', ['r-1'])
 
         res = self.lua('peek', 99, 'queue', 5)
         self.assertEqual(len(res), 2)
@@ -799,8 +799,8 @@ class TestResources(TestQless):
 
     def test_single_resource_does_not_pop_when_in_use(self):
         self.lua('resource.set', 0, 'r-1', 1)
-        self.lua('put', 0, None, 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
-        self.lua('put', 0, None, 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
 
         res = self.lua('pop', 1, 'queue', 'worker-1', 1)
         self.assertEquals(len(res), 1)
@@ -838,7 +838,7 @@ class TestResources(TestQless):
         self.lua('resource.set', 0, 'r-1', 1)
 
         res = self.lua('recur', 0, 'queue', 'jid-1', 'klass', {}, 'interval', 60, 0, 'resources', ['r-1'])
-        self.lua('put', 0, None, 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 0, '', 'queue', 'jid-2', 'klass', {}, 0, 'resources', ['r-1'])
 
         res = self.lua('pop', 15, 'queue', 'worker-1', 5)
 
@@ -851,10 +851,10 @@ class TestResources(TestQless):
 
         self.lua('resource.set', 0, 'r-1', 1)
 
-        self.lua('put', 10, None, 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 10, '', 'queue', 'jid-1', 'klass', {}, 0, 'resources', ['r-1'])
 
-        self.lua('put', 15, None, 'queue', 'jid-low', 'klass', {}, 0, 'resources', ['r-1'])
-        self.lua('put', 15, None, 'queue', 'jid-high', 'klass', {}, 0, 'resources', ['r-1'], 'priority', 5)
+        self.lua('put', 15, '', 'queue', 'jid-low', 'klass', {}, 0, 'resources', ['r-1'])
+        self.lua('put', 15, '', 'queue', 'jid-high', 'klass', {}, 0, 'resources', ['r-1'], 'priority', 5)
 
         res = self.lua('pop', 16, 'queue', 'worker-1', 1)
         self.lua('complete', 17, 'jid-1', 'worker-1', 'queue', {})
